@@ -1,1 +1,4 @@
 C:/Users/Ruslan/PycharmProjects/pythonProject/bbc_text_classification/saved_model_dir filter=lfs diff=lfs merge=lfs -text
+*.pb filter=lfs diff=lfs merge=lfs -text
+*.index filter=lfs diff=lfs merge=lfs -text
+*.data* filter=lfs diff=lfs merge=lfs -text

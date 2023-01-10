@@ -5,9 +5,9 @@ import tensorflow as tf
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 import numpy as np
 
-from bbc_text_classification.parse_news import parse_bbc_news
+from bbc_text_classification.utils.parse_news import parse_bbc_news
 from train import MAX_WORDS, MAX_SEQ_LEN
-from utils import parse_to_labels, tokenize
+from bbc_text_classification.utils.utils import parse_to_labels, tokenize
 
 logger = log.getLogger()
 log.basicConfig(format='%(asctime)s - %(message)s', level=log.INFO, stream=sys.stdout)

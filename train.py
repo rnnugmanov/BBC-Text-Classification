@@ -1,5 +1,4 @@
-from bbc_text_classification.model import create_model
-from bbc_text_classification.utils import *
+from bbc_text_classification.utils.model import create_model
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 import tensorflow as tf
 
