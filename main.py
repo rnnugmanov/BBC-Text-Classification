@@ -1,45 +1,39 @@
-from bbc_text_classification.model import create_model
-from bbc_text_classification.utils import *
-from tensorflow.keras.preprocessing.sequence import pad_sequences
 import tensorflow as tf
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+import numpy as np
+import logging as log
 
-# main paths
+from bbc_text_classification.parse_news import parse_bbc_news
+from train import MAX_WORDS, MAX_SEQ_LEN
+from utils import parse_to_labels, tokenize
+
+SAVED_DIR = r"C:\Users\Ruslan\PycharmProjects\pythonProject\bbc_text_classification\saved_model_dir"
 DATA_DIR = r"C:\Users\Ruslan\Desktop\datasets\bbc_text_classification\bbc"
-EMBEDDINGS_PATH = r"C:\Users\Ruslan\Desktop\datasets\glove_embeddings\glove.6B.300d.txt"
-BEST_RESULTS_DIR = r"C:\Users\Ruslan\PycharmProjects\pythonProject\bbc_text_classification\best_model"
-LOG_DIR = r"C:\Users\Ruslan\PycharmProjects\pythonProject\bbc_text_classification\log_dir"
+BASE_URL = "https://www.bbc.com"
+PAGE_PATH = "https://www.bbc.com/news/business"
 
-# dataset params
-MAX_WORDS = 10000
-MAX_SEQ_LEN = 600
-TRAIN_SAMPLES_NUM = 2000
-VAL_SAMPLES_NUM = 225
 
-# train params
-EPOCHS = 100
-BATCH_SIZE = 32
+if '__main__' == __name__:
+    logger = log.getLogger()
+    log.basicConfig(format='%(asctime)s - %(message)s', level=log.INFO)
 
-if __name__ == '__main__':
-    texts, labels = parse_to_labels(DATA_DIR)
-    embeddings_index = load_embeddings(EMBEDDINGS_PATH)
-    sequences, word_to_index_map = tokenize(texts, MAX_WORDS)
-    embedding_matrix = create_embeddings_matrix(embeddings_index, word_to_index_map, MAX_WORDS)
-    sequences = pad_sequences(sequences, MAX_SEQ_LEN)
+    logger.info(f"Loading TF model from {SAVED_DIR}")
+    predictor = tf.keras.models.load_model(SAVED_DIR)
 
-    train_x, train_y, val_x, val_y = shuffle_and_divide_data(sequences, labels, TRAIN_SAMPLES_NUM, VAL_SAMPLES_NUM)
-    model = create_model(max_words=MAX_WORDS, max_seq_len=MAX_SEQ_LEN,
-                         embeddings_dim=embedding_matrix.shape[1], embeddings_matrix=embedding_matrix)
-    model.summary()
-    model.compile(optimizer='adam',
-                  loss='categorical_crossentropy',
-                  metrics=['accuracy'])
+    logger.info(f"Loading text dataset to create tokenizer")
+    dataset, labels = parse_to_labels(DATA_DIR)
+    _, tokenizer = tokenize(dataset, MAX_WORDS)
 
-    check_point = tf.keras.callbacks.ModelCheckpoint(BEST_RESULTS_DIR, monitor='loss', save_best_only=True)
-    tb_callback = tf.keras.callbacks.TensorBoard(log_dir=LOG_DIR)
+    logger.info(f"Parsing news from {PAGE_PATH}")
+    texts = parse_bbc_news(BASE_URL, PAGE_PATH)
 
-    model.fit(train_x, train_y,
-              epochs=EPOCHS,
-              batch_size=BATCH_SIZE,
-              validation_data=(val_x, val_y),
-              callbacks=[check_point, tb_callback])
+    classes = ['business', 'entertainment', 'politics', 'sport', 'tech']
+    for link, text in texts.items():
+        logger.info(f"Making classification for {link}")
+        text = tokenizer.texts_to_sequences([text])
+        text = pad_sequences(text, MAX_SEQ_LEN)
+        prediction = predictor.predict(text)
+        predicted_class = np.argmax(prediction)
 
+        logger.info(f" Predicted class: {classes[predicted_class]},"
+                    f" with probability {int(prediction[0][predicted_class] * 100)}%")

@@ -1,6 +1,7 @@
 from tqdm import tqdm
 import os
 import numpy as np
+import logging as log
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.utils import to_categorical
 
@@ -13,7 +14,7 @@ def parse_to_labels(data_path):
     for label, directory in enumerate(dir_to_iterate):
         path_to_iterate = os.path.join(data_path, directory)
 
-        print(f"Loading files from {path_to_iterate} directory")
+        log.info(f"Loading files from {path_to_iterate} directory")
         for file_name in tqdm(os.listdir(path_to_iterate)):
             if file_name[-4:] == '.txt':
                 text_file = os.path.join(path_to_iterate, file_name)
@@ -46,7 +47,7 @@ def tokenize(texts: list, num_words):
     tokenizer.fit_on_texts(texts)
     sequences = tokenizer.texts_to_sequences(texts)
 
-    return sequences, tokenizer.word_index
+    return sequences, tokenizer
 
 
 def create_embeddings_matrix(embeddings: dict, word_to_index_map: dict, max_words):
