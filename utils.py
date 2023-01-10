@@ -1,3 +1,5 @@
+import sys
+
 from tqdm import tqdm
 import os
 import numpy as np
@@ -15,7 +17,7 @@ def parse_to_labels(data_path):
         path_to_iterate = os.path.join(data_path, directory)
 
         log.info(f"Loading files from {path_to_iterate} directory")
-        for file_name in tqdm(os.listdir(path_to_iterate)):
+        for file_name in tqdm(os.listdir(path_to_iterate), file=sys.stdout):
             if file_name[-4:] == '.txt':
                 text_file = os.path.join(path_to_iterate, file_name)
                 text = open(text_file)
